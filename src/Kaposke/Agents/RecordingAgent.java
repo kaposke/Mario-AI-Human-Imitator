@@ -1,13 +1,15 @@
 package Kaposke.Agents;
 
+import Kaposke.Models.SettingsModel;
+import Kaposke.Utilities.SettingsHandler;
 import Kaposke.Utilities.ActionDictionary;
 import Kaposke.Utilities.ArffDataFile;
 import Kaposke.Utilities.UtilitySingleton;
 import Kaposke.Utilities.Utils;
 import ch.idsia.agents.controllers.human.HumanKeyboardAgent;
 import ch.idsia.benchmark.mario.environments.Environment;
+import com.google.gson.Gson;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,20 +20,31 @@ public class RecordingAgent extends HumanKeyboardAgent {
 
     private boolean started = false;
     private boolean moved = false;
+    private SettingsModel settings;
+
+    public void initialize() {
+        try {
+            settings = SettingsHandler.loadSettings();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        setupArffFile();
+    }
 
     @Override
     public void integrateObservation(Environment environment) {
         super.integrateObservation(environment);
 
         if(!started) {
+            initialize();
             started = true;
-            setupArffFile();
         }
-        if(!moved) {
+
+        if (!moved) {
             moved = !ActionDictionary.buildActionString(getAction()).equals("Idle");
-            if(moved) System.out.println("Moved!");
+            if (moved) System.out.println("Moved!");
         }
-        if(moved) {
+        if (moved) {
             List<String> data = new ArrayList<>();
 
             for (int i = 0; i < mergedObservation.length; i++) {
@@ -40,11 +53,18 @@ public class RecordingAgent extends HumanKeyboardAgent {
                 }
             }
 
-            data.add(marioMode == 2 ? "fire" : marioMode == 1 ? "large" : "small");
-            data.add(isMarioOnGround ? "true" : "false");
-            data.add(isMarioAbleToJump ? "true" : "false");
-            data.add(isMarioAbleToShoot ? "true" : "false");
-            data.add(isMarioCarrying ? "true" : "false");
+            if (settings.marioMode)
+                data.add(marioMode == 2 ? "fire" : marioMode == 1 ? "large" : "small");
+            if (settings.isMarioOnGround)
+                data.add(isMarioOnGround ? "true" : "false");
+            if (settings.isMarioAbleToJump)
+                data.add(isMarioAbleToJump ? "true" : "false");
+            if (settings.isMarioAbleToShoot)
+                data.add(isMarioAbleToShoot ? "true" : "false");
+            if (settings.isMarioCarrying)
+                data.add(isMarioCarrying ? "true" : "false");
+
+            data.add(ActionDictionary.buildActionString(getAction()));
 
 //            boolean[] a = new boolean[6];
 //            int i = 0;
@@ -53,8 +73,6 @@ public class RecordingAgent extends HumanKeyboardAgent {
 //                a[i] = action;
 //                i++;
 //            }
-
-            data.add(ActionDictionary.buildActionString(getAction()));
 
             try {
                 arffFile.writeData(data);
@@ -65,6 +83,9 @@ public class RecordingAgent extends HumanKeyboardAgent {
     }
 
     private void setupArffFile() {
+        // add settings to header comments so that we can correctly load it later
+        arffFile.addHeadComment(new Gson().toJson(settings));
+
         arffFile.setRelation("marioData");
 
         // Create an attribute for each visible block. Has to be separated numerics.
@@ -73,12 +94,17 @@ public class RecordingAgent extends HumanKeyboardAgent {
                 arffFile.addAttribute("observation" + i + "-" + j, "numeric");
             }
         }
-        //arffFile.addAttribute("marioStatus", "numeric");
-        arffFile.addAttribute("marioMode", "{ fire, large , small }");
-        arffFile.addAttribute("isMarioOnGround", "{ false , true }");
-        arffFile.addAttribute("isMarioAbleToJump", "{ false , true }");
-        arffFile.addAttribute("isMarioAbleToShoot", "{ false , true }");
-        arffFile.addAttribute("isMarioCarrying", "{ false , true }");
+
+        if (settings.marioMode)
+            arffFile.addAttribute("marioMode", "{ fire, large , small }");
+        if (settings.isMarioOnGround)
+            arffFile.addAttribute("isMarioOnGround", "{ false , true }");
+        if (settings.isMarioAbleToJump)
+            arffFile.addAttribute("isMarioAbleToJump", "{ false , true }");
+        if (settings.isMarioAbleToShoot)
+            arffFile.addAttribute("isMarioAbleToShoot", "{ false , true }");
+        if (settings.isMarioCarrying)
+            arffFile.addAttribute("isMarioCarrying", "{ false , true }");
 
 //        arffFile.addAttribute("Left", "{ false , true }");
 //        arffFile.addAttribute("Right", "{ false , true }");

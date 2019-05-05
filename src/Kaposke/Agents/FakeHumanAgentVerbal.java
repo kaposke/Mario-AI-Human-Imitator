@@ -1,9 +1,7 @@
 package Kaposke.Agents;
 
-import Kaposke.Utilities.ActionDictionary;
-import Kaposke.Utilities.J48ActionClassifier;
-import Kaposke.Utilities.UtilitySingleton;
-import Kaposke.Utilities.Utils;
+import Kaposke.Models.SettingsModel;
+import Kaposke.Utilities.*;
 import ch.idsia.agents.Agent;
 import ch.idsia.agents.controllers.BasicMarioAIAgent;
 import ch.idsia.benchmark.mario.environments.Environment;
@@ -16,6 +14,7 @@ import weka.core.converters.ConverterUtils;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,25 +27,41 @@ public class FakeHumanAgentVerbal extends BasicMarioAIAgent implements Agent {
 
     private boolean jumpedPreviously = false;
 
+    private SettingsModel settings;
+
     public FakeHumanAgentVerbal() {
         super(new File(UtilitySingleton.getInstance().getArffPath()).getName());
 
         actionClassifier = new J48();
 
         try {
-            ConverterUtils.DataSource ds = new ConverterUtils.DataSource(UtilitySingleton.getInstance().getArffPath());
-            System.out.println(UtilitySingleton.getInstance().getArffPath());
-            dataSet = ds.getDataSet();
-            System.out.println("Learning...");
-            dataSet.setClassIndex(dataSet.numAttributes() -1);
+            // Loads comment from arff file and gets settings used on it. Smelly stuff, but I've got no time for better ideas.
+            List<String> headerComments = ArffReader.getHeaderComments(UtilitySingleton.getInstance().getArffPath());
 
-            actionClassifier.buildClassifier(dataSet);
+            if(!headerComments.isEmpty())
+                settings = SettingsHandler.fromJson(headerComments.get(0));
+            else
+                settings = new SettingsModel();
+
+            buildClassifier();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
+    private void buildClassifier() throws Exception {
+        ConverterUtils.DataSource ds = new ConverterUtils.DataSource(UtilitySingleton.getInstance().getArffPath());
+        System.out.println(UtilitySingleton.getInstance().getArffPath());
+        dataSet = ds.getDataSet();
+
+        System.out.println("Learning...");
+
+        // Last attribute must be class
+        dataSet.setClassIndex(dataSet.numAttributes() - 1);
+
+        actionClassifier.buildClassifier(dataSet);
+    }
 
     @Override
     public boolean[] getAction() {
@@ -59,7 +74,6 @@ public class FakeHumanAgentVerbal extends BasicMarioAIAgent implements Agent {
 
         try {
             action = guessAction();
-            //System.out.println("Guessed " + ActionDictionary.buildActionString(action));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -67,29 +81,14 @@ public class FakeHumanAgentVerbal extends BasicMarioAIAgent implements Agent {
 
     private boolean[] guessAction() throws Exception {
 
-        DenseInstance instance = new DenseInstance(372);
+        DenseInstance instance = new DenseInstance(dataSet.numAttributes());
         instance.setDataset(dataSet);
 
         fillInstance(instance);
 
-        //System.out.println(actionClassifier.distributionForInstance(instance).length);
-
-
         double[] distribution = actionClassifier.distributionForInstance(instance);
         String actionVerb = ActionDictionary.getAllActionsPossibilities().get(Utils.getHighestDoubleIndex(distribution));
         action = ActionDictionary.getActionFromString(actionVerb);
-
-        // Show percentages for all actions
-        List<String> possibilities = ActionDictionary.getAllActionsPossibilities();
-        System.out.println("----------------------------------");
-        for (int i = 0; i < distribution.length; i++) {
-            System.out.println(possibilities.get(i) + ": " + String.format("%.2f", distribution[i] * 100) + "%");
-        }
-        System.out.println("----------------------------------");
-
-//        for (int i = 0; i < 6; i++) {
-//            action[i] = Utils.getHighestDoubleIndex(actionClassifiers.get(i).guessProbabilitiesFromInstance(instance)) == 1;
-//        }
 
         cleanAmbiguousActions();
 
@@ -102,25 +101,26 @@ public class FakeHumanAgentVerbal extends BasicMarioAIAgent implements Agent {
         for (int y = 0; y < mergedObservation.length; y++) {
             for (int x = 0; x < mergedObservation[0].length; x++) {
                 index = y * mergedObservation[0].length + x;
-                instance.setValue(index,mergedObservation[y][x]);
+                instance.setValue(index, mergedObservation[y][x]);
             }
         }
-        //instance.setValue(++index, marioStatus);
-        instance.setValue(++index, marioMode == 2 ? "fire" : marioMode == 1 ? "large" : "small");
-        instance.setValue(++index, isMarioOnGround ? "true" : "false");
-        instance.setValue(++index, isMarioAbleToJump ? "true" : "false");
-        instance.setValue(++index, isMarioAbleToShoot ? "true" : "false");
-        instance.setValue(++index, isMarioCarrying ? "true" : "false");
+
+        if (settings.marioMode)
+            instance.setValue(++index, marioMode == 2 ? "fire" : marioMode == 1 ? "large" : "small");
+        if (settings.isMarioOnGround)
+            instance.setValue(++index, isMarioOnGround ? "true" : "false");
+        if (settings.isMarioAbleToJump)
+            instance.setValue(++index, isMarioAbleToJump ? "true" : "false");
+        if (settings.isMarioAbleToShoot)
+            instance.setValue(++index, isMarioAbleToShoot ? "true" : "false");
+        if (settings.isMarioCarrying)
+            instance.setValue(++index, isMarioCarrying ? "true" : "false");
     }
 
     private void cleanAmbiguousActions() {
-//        // Walk right if no action
-//        if(ActionDictionary.buildActionString(action).equals("Idle"))
-//            action[1] = true;
-        if(action[1])
+        if (action[1])
             action[0] = false;
-        if(jumpedPreviously)
+        if (jumpedPreviously)
             action[3] = false;
-
     }
 }

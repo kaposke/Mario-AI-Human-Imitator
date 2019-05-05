@@ -13,6 +13,8 @@ public class ArffDataFile {
     private File file;
     private BufferedWriter bufferedWriter;
 
+    // Comments on top of the file
+    private List<String> headComments = new ArrayList<>();
     // ARFF Related tags
     private String relation;
     private List<String> attributes = new ArrayList<>();
@@ -33,11 +35,18 @@ public class ArffDataFile {
     }
 
     private void fillSettings() throws IOException {
+        writeComments();
         bufferedWriter.write("@relation " + relation + "\n");
         bufferedWriter.newLine();
         writeAttributes();
         bufferedWriter.newLine();
         bufferedWriter.write("@data\n");
+    }
+
+    private void writeComments() throws IOException {
+        for (String comment : headComments) {
+            bufferedWriter.write("%" + comment + "\n");
+        }
     }
 
     private void writeAttributes() throws IOException {
@@ -62,6 +71,10 @@ public class ArffDataFile {
 
     public void setRelation(String relation) {
         this.relation = relation;
+    }
+
+    public void addHeadComment(String comment){
+        headComments.add(comment);
     }
 
     public void addAttribute(String attributeName, String typeSpecification) {

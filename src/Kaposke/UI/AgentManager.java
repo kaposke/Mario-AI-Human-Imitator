@@ -1,8 +1,10 @@
 package Kaposke.UI;
 
+import Kaposke.Models.SettingsModel;
+import Kaposke.Utilities.ArffReader;
+import Kaposke.Utilities.SettingsHandler;
 import Kaposke.Tasks.CustomEvaluationTask;
 import Kaposke.Utilities.UtilitySingleton;
-import Kaposke.Utilities.Utils;
 import ch.idsia.agents.Agent;
 import ch.idsia.agents.AgentsPool;
 import ch.idsia.tools.MarioAIOptions;
@@ -15,13 +17,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class AgentManager implements ActionListener {
 
-    private String agent = "Kaposke.Agents.FakeHumanAgentVerbal";
+    private String aiAgent = "Kaposke.Agents.FakeHumanAgentVerbal";
     private String defaultDirectory = "CollectedData/PlayerRecordings";
     private String recordingsPath = "CollectedData/PlayerRecordings";
     private String settingsPath = "Settings/settings.json";
@@ -58,7 +59,7 @@ public class AgentManager implements ActionListener {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(600, 450);
 
-        GridLayout layout = new GridLayout(7,2,5,5);
+        GridLayout layout = new GridLayout(7, 2, 5, 5);
 
         panel = new JPanel();
         panel.setLayout(layout);
@@ -148,69 +149,121 @@ public class AgentManager implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         // If settings
-        if(e.getSource() == recordingSettingsButton) {
-            new RecordingSettingsFrame();
+        if (e.getSource() == recordingSettingsButton) {
+            RecodingSettingsPressed();
         } // If recording Agent
         else if (e.getSource() == recordingAgentButton) {
-            // Pergunta o nome e salva o caminho
-            UtilitySingleton.getInstance().setArffPath(recordingsPath + "/" + JOptionPane.showInputDialog("Insira o seu nome"));
-            playAgent("Kaposke.Agents.RecordingAgent");
-            try {
-                saveOptionsTo(UtilitySingleton.getInstance().getArffPath(), (int)amountOfLevelsSpinner.getValue(), (int)startingDifficultySpinner.getValue(), (int)difficultyIncreaseSpinner.getValue(), levelSeed);
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+            RecordingAgentPressed();
         } // If AI Agent
-        else if(e.getSource() == AIAgentButton) {
-
-            fileChooser.showOpenDialog(frame);
-            File file = fileChooser.getSelectedFile();
-            if(!file.exists())
-                return;
-            if (!file.getName().toLowerCase().endsWith(".arff")) {
-                JOptionPane.showMessageDialog(frame, "Selecione um arquivo '.arff'", "Warning", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            UtilitySingleton.getInstance().setArffPath(file.getPath());
-            playAgent(agent);
+        else if (e.getSource() == AIAgentButton) {
+            AIAgentPressed();
         }
-        if(e.getSource() == useRandomSeedCheckBox) {
+        if (e.getSource() == useRandomSeedCheckBox) {
             levelSeedSpinner.setEnabled(!useRandomSeedCheckBox.isSelected());
             levelSeedLabel.setEnabled(!useRandomSeedCheckBox.isSelected());
-
         }
     }
 
+    private void RecodingSettingsPressed() {
+        new RecordingSettingsFrame();
+    }
+
+    private void RecordingAgentPressed() {
+        // Pergunta o nome e salva o caminho
+        String playerName = JOptionPane.showInputDialog("Insira o seu nome", "");
+
+        if(playerName == null || playerName.length() == 0) return;
+
+        UtilitySingleton.getInstance().setArffPath(recordingsPath + "/" + playerName);
+        playRecordingAgent();
+    }
+
+    private void AIAgentPressed() {
+        fileChooser.showOpenDialog(frame);
+        File file = fileChooser.getSelectedFile();
+        if (!file.exists())
+            return;
+        if (!file.getName().toLowerCase().endsWith(".arff")) {
+            JOptionPane.showMessageDialog(frame, "Selecione um arquivo '.arff'", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        UtilitySingleton.getInstance().setArffPath(file.getPath());
+        playFakeHumanAgent();
+    }
+
     private void playAgent(String agentPath) {
-                Agent agent = AgentsPool.loadAgent(agentPath, false);
-                if(!useRandomSeedCheckBox.isSelected()) {
-                    levelSeed = (int)levelSeedSpinner.getValue();
-                } else {
-                    Random r = new Random();
-                    levelSeed = r.nextInt();
-                }
-                evaluateAgent(agent, (int)amountOfLevelsSpinner.getValue(), (int)startingDifficultySpinner.getValue(), (int)difficultyIncreaseSpinner.getValue(), levelSeed);
+        Agent agent = AgentsPool.loadAgent(agentPath, false);
+        if (!useRandomSeedCheckBox.isSelected()) {
+            levelSeed = (int) levelSeedSpinner.getValue();
+        } else {
+            Random r = new Random();
+            levelSeed = r.nextInt();
+        }
+        evaluateAgent(agent, (int) amountOfLevelsSpinner.getValue(), (int) startingDifficultySpinner.getValue(), (int) difficultyIncreaseSpinner.getValue(), levelSeed);
+    }
+
+    private void playRecordingAgent() {
+        Agent agent = AgentsPool.loadAgent("Kaposke.Agents.RecordingAgent", false);
+
+        if (!useRandomSeedCheckBox.isSelected()) {
+            levelSeed = (int) levelSeedSpinner.getValue();
+        } else {
+            Random r = new Random();
+            levelSeed = r.nextInt();
+        }
+
+        try {
+            SettingsModel settings = SettingsHandler.loadSettings();
+
+            marioAIOptions.setReceptiveFieldWidth(settings.GridWidth);
+            marioAIOptions.setReceptiveFieldHeight(settings.GridHeight);
+
+            evaluateAgent(agent, (int) amountOfLevelsSpinner.getValue(), (int) startingDifficultySpinner.getValue(), (int) difficultyIncreaseSpinner.getValue(), levelSeed);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void playFakeHumanAgent() {
+        Agent agent = AgentsPool.loadAgent(aiAgent, false);
+
+        if (!useRandomSeedCheckBox.isSelected()) {
+            levelSeed = (int) levelSeedSpinner.getValue();
+        } else {
+            Random r = new Random();
+            levelSeed = r.nextInt();
+        }
+
+        try {
+            // Loads comment from arff file and gets settings used on it. Smelly stuff, but I've got no time for better ideas.
+            List<String> headerComments = ArffReader.getHeaderComments(UtilitySingleton.getInstance().getArffPath());
+
+            if(!headerComments.isEmpty()) {
+                SettingsModel settings = SettingsHandler.fromJson(headerComments.get(0));
+
+                marioAIOptions.setReceptiveFieldWidth(settings.GridWidth);
+                marioAIOptions.setReceptiveFieldHeight(settings.GridHeight);
+            }
+
+            evaluateAgent(agent, (int) amountOfLevelsSpinner.getValue(), (int) startingDifficultySpinner.getValue(), (int) difficultyIncreaseSpinner.getValue(), levelSeed);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void evaluateAgent(final Agent agent, int amountOfLevels, int startingDifficulty, int difficultyIncrease, int levelSeed) {
 
-        final CustomEvaluationTask task = new CustomEvaluationTask(marioAIOptions);
         marioAIOptions.setAgent(agent);
         marioAIOptions.setLevelRandSeed(levelSeed);
-        task.setOptionsAndReset(marioAIOptions);
+
+        final CustomEvaluationTask task = new CustomEvaluationTask(marioAIOptions);
+
         task.setInitialDificulty(startingDifficulty);
         task.setIncrementDificulty(difficultyIncrease);
-        System.out.println("Evaluating agent " + agent.getName() + " with seed " + marioAIOptions.getLevelRandSeed());
-        task.doEpisodes(amountOfLevels, false, 1);
-    }
 
-    private void saveOptionsTo(String path, int amountOfLevels, int startingDifficulty, int difficultyIncrease, int levelSeed ) throws IOException {
-        List<String> lines = new ArrayList<>();
-        lines.add(String.valueOf(amountOfLevels));
-        lines.add(String.valueOf(startingDifficulty));
-        lines.add(String.valueOf(difficultyIncrease));
-        lines.add(String.valueOf(levelSeed));
-        Utils.createFileWith(path + " Config.txt", lines);
+        System.out.println("Evaluating agent " + agent.getName() + " with seed " + marioAIOptions.getLevelRandSeed());
+
+        task.doEpisodes(amountOfLevels, false, 1);
     }
 
     public static void main(String[] args) {

@@ -1,4 +1,4 @@
-package Kaposke;
+package Kaposke.Utilities;
 
 import Kaposke.Models.SettingsModel;
 import Kaposke.Utilities.UtilitySingleton;
@@ -7,6 +7,14 @@ import com.google.gson.Gson;
 import java.io.*;
 
 public class SettingsHandler {
+
+    public static String toJson(SettingsModel settings) {
+        return new Gson().toJson(settings);
+    }
+
+    public static SettingsModel fromJson(String json) {
+        return new Gson().fromJson(json, SettingsModel.class);
+    }
 
     public static void saveSettings(SettingsModel settings) throws IOException {
         String path = UtilitySingleton.getInstance().getSettingsPath();

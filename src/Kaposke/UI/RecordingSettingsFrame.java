@@ -1,10 +1,7 @@
 package Kaposke.UI;
 
 import Kaposke.Models.SettingsModel;
-import Kaposke.SettingsHandler;
-import Kaposke.Utilities.UtilitySingleton;
-import com.google.gson.Gson;
-import weka.core.Settings;
+import Kaposke.Utilities.SettingsHandler;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
