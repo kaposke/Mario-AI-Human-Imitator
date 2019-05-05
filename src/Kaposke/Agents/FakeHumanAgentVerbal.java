@@ -22,14 +22,16 @@ import java.util.List;
 
 public class FakeHumanAgentVerbal extends BasicMarioAIAgent implements Agent {
 
-    J48 actionClassifier = new J48();
+    private J48 actionClassifier;
 
-    Instances dataSet;
+    private Instances dataSet;
 
-    boolean jumpedPreviously = false;
+    private boolean jumpedPreviously = false;
 
     public FakeHumanAgentVerbal() {
         super(new File(UtilitySingleton.getInstance().getArffPath()).getName());
+
+        actionClassifier = new J48();
 
         try {
             ConverterUtils.DataSource ds = new ConverterUtils.DataSource(UtilitySingleton.getInstance().getArffPath());

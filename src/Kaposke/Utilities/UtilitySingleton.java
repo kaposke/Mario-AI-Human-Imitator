@@ -18,7 +18,8 @@ public class UtilitySingleton {
     }
 
     // Smelly stuff
-    String arffPath;
+    private String arffPath;
+    private String settingsPath;
 
     public void setArffPath(String arffPath) {
         this.arffPath = arffPath;
@@ -26,5 +27,13 @@ public class UtilitySingleton {
 
     public String getArffPath() {
         return arffPath;
+    }
+
+    public void setSettingsPath(String settingsPath) {
+        this.settingsPath = settingsPath;
+    }
+
+    public String getSettingsPath() {
+        return settingsPath;
     }
 }

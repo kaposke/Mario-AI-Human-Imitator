@@ -1,13 +1,10 @@
-package Kaposke.scenarios;
+package Kaposke.UI;
 
-import Kaposke.Agents.RecordingAgent;
 import Kaposke.Tasks.CustomEvaluationTask;
 import Kaposke.Utilities.UtilitySingleton;
 import Kaposke.Utilities.Utils;
 import ch.idsia.agents.Agent;
 import ch.idsia.agents.AgentsPool;
-import ch.idsia.agents.controllers.ForwardAgent;
-import ch.idsia.agents.controllers.ForwardJumpingAgent;
 import ch.idsia.tools.MarioAIOptions;
 
 import javax.swing.*;
@@ -27,6 +24,7 @@ public class AgentManager implements ActionListener {
     private String agent = "Kaposke.Agents.FakeHumanAgentVerbal";
     private String defaultDirectory = "CollectedData/PlayerRecordings";
     private String recordingsPath = "CollectedData/PlayerRecordings";
+    private String settingsPath = "Settings/settings.json";
 
     private JFrame frame;
     private JPanel panel;
@@ -40,6 +38,7 @@ public class AgentManager implements ActionListener {
     private JSpinner levelSeedSpinner;
 
     private JButton recordingAgentButton;
+    private JButton recordingSettingsButton;
     private JButton AIAgentButton;
 
     private JFileChooser fileChooser;
@@ -50,6 +49,8 @@ public class AgentManager implements ActionListener {
 
     private AgentManager() {
         setupGui();
+
+        UtilitySingleton.getInstance().setSettingsPath(settingsPath);
     }
 
     private void setupGui() {
@@ -57,7 +58,7 @@ public class AgentManager implements ActionListener {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(600, 450);
 
-        GridLayout layout = new GridLayout(6,2,5,5);
+        GridLayout layout = new GridLayout(7,2,5,5);
 
         panel = new JPanel();
         panel.setLayout(layout);
@@ -107,15 +108,19 @@ public class AgentManager implements ActionListener {
 
         panel.add(levelSeedSpinner);
 
-        // Row 6 - Buttons
+        // Row 6
+        recordingSettingsButton = new JButton("Settings");
+        recordingSettingsButton.addActionListener(this);
+        panel.add(recordingSettingsButton);
+
         recordingAgentButton = new JButton("Play RecordingAgent");
         recordingAgentButton.addActionListener(this);
-
         panel.add(recordingAgentButton);
 
+        // Row 7
         AIAgentButton = new JButton("Play AI Agent");
-        //AIAgentButton.setEnabled(false);
         AIAgentButton.addActionListener(this);
+        panel.add(AIAgentButton);
 
         fileChooser = new JFileChooser();
         fileChooser.setCurrentDirectory(new File(defaultDirectory));
@@ -130,9 +135,8 @@ public class AgentManager implements ActionListener {
                 return null;
             }
         };
-        fileChooser.setFileFilter(filter);
 
-        panel.add(AIAgentButton);
+        fileChooser.setFileFilter(filter);
 
         frame.add(panel);
 
@@ -143,8 +147,11 @@ public class AgentManager implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // If recording Agent
-        if (e.getSource() == recordingAgentButton) {
+        // If settings
+        if(e.getSource() == recordingSettingsButton) {
+            new RecordingSettingsFrame();
+        } // If recording Agent
+        else if (e.getSource() == recordingAgentButton) {
             // Pergunta o nome e salva o caminho
             UtilitySingleton.getInstance().setArffPath(recordingsPath + "/" + JOptionPane.showInputDialog("Insira o seu nome"));
             playAgent("Kaposke.Agents.RecordingAgent");
@@ -153,7 +160,8 @@ public class AgentManager implements ActionListener {
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
-        } else if(e.getSource() == AIAgentButton) {
+        } // If AI Agent
+        else if(e.getSource() == AIAgentButton) {
 
             fileChooser.showOpenDialog(frame);
             File file = fileChooser.getSelectedFile();
