@@ -40,9 +40,11 @@ public class AgentManager implements ActionListener {
 
     private JButton recordingAgentButton;
     private JButton recordingSettingsButton;
-    private JButton AIAgentButton;
+    private JButton AIFromArffButton;
+    private JButton AIFromModelButton;
 
-    private JFileChooser fileChooser;
+    private JFileChooser arffFileChooser;
+    private JFileChooser modelFileChooser;
 
     private int levelSeed = 1;
 
@@ -119,12 +121,16 @@ public class AgentManager implements ActionListener {
         panel.add(recordingAgentButton);
 
         // Row 7
-        AIAgentButton = new JButton("Play AI Agent");
-        AIAgentButton.addActionListener(this);
-        panel.add(AIAgentButton);
+        AIFromArffButton = new JButton("Play AI from ARFF");
+        AIFromArffButton.addActionListener(this);
+        panel.add(AIFromArffButton);
 
-        fileChooser = new JFileChooser();
-        fileChooser.setCurrentDirectory(new File(defaultDirectory));
+        AIFromModelButton = new JButton("Play AI from Model");
+        AIFromModelButton.addActionListener(this);
+        panel.add(AIFromModelButton);
+
+        arffFileChooser = new JFileChooser();
+        arffFileChooser.setCurrentDirectory(new File(defaultDirectory));
         FileFilter filter = new FileFilter() {
             @Override
             public boolean accept(File f) {
@@ -137,7 +143,23 @@ public class AgentManager implements ActionListener {
             }
         };
 
-        fileChooser.setFileFilter(filter);
+        arffFileChooser.setFileFilter(filter);
+
+        modelFileChooser = new JFileChooser();
+        modelFileChooser.setCurrentDirectory(new File(defaultDirectory));
+        filter = new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                return f.getName().toLowerCase().endsWith(".model") || f.isDirectory();
+            }
+
+            @Override
+            public String getDescription() {
+                return null;
+            }
+        };
+
+        modelFileChooser.setFileFilter(filter);
 
         frame.add(panel);
 
@@ -154,9 +176,12 @@ public class AgentManager implements ActionListener {
         } // If recording Agent
         else if (e.getSource() == recordingAgentButton) {
             RecordingAgentPressed();
-        } // If AI Agent
-        else if (e.getSource() == AIAgentButton) {
-            AIAgentPressed();
+        } // If AI Agent from ARFF
+        else if (e.getSource() == AIFromArffButton) {
+            AIFromArffPressed();
+        } // If AI Agent from Model
+        else if(e.getSource() == AIFromModelButton) {
+            AIFromModelPressed();
         }
         if (e.getSource() == useRandomSeedCheckBox) {
             levelSeedSpinner.setEnabled(!useRandomSeedCheckBox.isSelected());
@@ -170,21 +195,34 @@ public class AgentManager implements ActionListener {
 
     private void RecordingAgentPressed() {
         // Pergunta o nome e salva o caminho
-        String playerName = JOptionPane.showInputDialog("Insira o seu nome", "");
+        String playerName = JOptionPane.showInputDialog("Insert recording name", "");
 
         if(playerName == null || playerName.length() == 0) return;
 
-        UtilitySingleton.getInstance().setArffPath(recordingsPath + "/" + playerName);
+        UtilitySingleton.getInstance().setArffPath(recordingsPath + "/" + playerName + ".arff");
         playRecordingAgent();
     }
 
-    private void AIAgentPressed() {
-        fileChooser.showOpenDialog(frame);
-        File file = fileChooser.getSelectedFile();
-        if (!file.exists())
+    private void AIFromModelPressed() {
+        modelFileChooser.showOpenDialog(frame);
+        File file = modelFileChooser.getSelectedFile();
+        if (file == null || !file.exists())
+            return;
+        if (!file.getName().toLowerCase().endsWith(".model")) {
+            JOptionPane.showMessageDialog(frame, "Select a '.model' file.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        UtilitySingleton.getInstance().setArffPath(file.getPath());
+        playFakeHumanAgent();
+    }
+
+    private void AIFromArffPressed() {
+        arffFileChooser.showOpenDialog(frame);
+        File file = arffFileChooser.getSelectedFile();
+        if (file == null || !file.exists())
             return;
         if (!file.getName().toLowerCase().endsWith(".arff")) {
-            JOptionPane.showMessageDialog(frame, "Selecione um arquivo '.arff'", "Warning", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(frame, "Select an '.arff' file.", "Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
         UtilitySingleton.getInstance().setArffPath(file.getPath());
@@ -235,7 +273,7 @@ public class AgentManager implements ActionListener {
         }
 
         try {
-            // Loads comment from arff file and gets settings used on it. Smelly stuff, but I've got no time for better ideas.
+            // Loads comment from arff file and gets settings used on it.
             List<String> headerComments = ArffReader.getHeaderComments(UtilitySingleton.getInstance().getArffPath());
 
             if(!headerComments.isEmpty()) {

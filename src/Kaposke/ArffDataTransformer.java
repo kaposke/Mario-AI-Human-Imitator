@@ -6,7 +6,7 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 
-public class ArffDataTransformer {
+public class  ArffDataTransformer {
 
     private static void convertToGenericJump(File folder) throws IOException {
         for (final File fileEntry : folder.listFiles()) {

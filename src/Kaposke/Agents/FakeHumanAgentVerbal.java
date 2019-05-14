@@ -5,11 +5,16 @@ import Kaposke.Utilities.*;
 import ch.idsia.agents.Agent;
 import ch.idsia.agents.controllers.BasicMarioAIAgent;
 import ch.idsia.benchmark.mario.environments.Environment;
+import com.sun.xml.internal.ws.developer.Serialization;
+import weka.classifiers.Classifier;
 import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.bayes.NaiveBayesUpdateable;
+import weka.classifiers.functions.MultilayerPerceptron;
 import weka.classifiers.lazy.IBk;
 import weka.classifiers.trees.J48;
 import weka.core.DenseInstance;
 import weka.core.Instances;
+import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils;
 
 import javax.swing.*;
@@ -21,7 +26,7 @@ import java.util.List;
 
 public class FakeHumanAgentVerbal extends BasicMarioAIAgent implements Agent {
 
-    private J48 actionClassifier;
+    private Classifier actionClassifier;
 
     private Instances dataSet;
 
@@ -35,19 +40,33 @@ public class FakeHumanAgentVerbal extends BasicMarioAIAgent implements Agent {
         actionClassifier = new J48();
 
         try {
-            // Loads comment from arff file and gets settings used on it. Smelly stuff, but I've got no time for better ideas.
-            List<String> headerComments = ArffReader.getHeaderComments(UtilitySingleton.getInstance().getArffPath());
+            String filePath = UtilitySingleton.getInstance().getArffPath();
+            if(filePath.endsWith(".arff")) {
+                trainModelAndPlay(filePath);
+            } else if(filePath.endsWith(".model")) {
+                loadClassifier(filePath);
+            }
 
-            if(!headerComments.isEmpty())
-                settings = SettingsHandler.fromJson(headerComments.get(0));
-            else
-                settings = new SettingsModel();
-
-            buildClassifier();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+    }
+
+    private void loadClassifier(String filePath) throws Exception {
+        actionClassifier = (Classifier)SerializationHelper.read(filePath);
+    }
+
+    private void trainModelAndPlay(String filePath) throws Exception {
+        // Loads comment from arff file and gets settings used on it.
+        List<String> headerComments = ArffReader.getHeaderComments(filePath);
+
+        if(!headerComments.isEmpty())
+            settings = SettingsHandler.fromJson(headerComments.get(0));
+        else
+            settings = new SettingsModel();
+
+        buildClassifier();
     }
 
     private void buildClassifier() throws Exception {
@@ -61,6 +80,12 @@ public class FakeHumanAgentVerbal extends BasicMarioAIAgent implements Agent {
         dataSet.setClassIndex(dataSet.numAttributes() - 1);
 
         actionClassifier.buildClassifier(dataSet);
+
+        saveModel();
+    }
+
+    private void saveModel() throws Exception {
+        SerializationHelper.write(UtilitySingleton.getInstance().getArffPath().replace(".arff", ".model"), actionClassifier);
     }
 
     @Override

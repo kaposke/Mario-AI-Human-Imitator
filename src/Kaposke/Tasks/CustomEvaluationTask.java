@@ -109,6 +109,7 @@ public class CustomEvaluationTask extends BasicTask implements Task {
                         System.out.println(environment.getEvaluationInfoAsString());
                 }
                 closeFrame();
+                printStatistics();
             }
         };
         episodes.start();

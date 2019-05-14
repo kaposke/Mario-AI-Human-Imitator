@@ -28,7 +28,7 @@ public class ArffDataFile {
     }
 
     public void initializeArffFile() throws IOException {
-        file = new File(filePath + ".arff");
+        file = new File(filePath);
         bufferedWriter = new BufferedWriter(new FileWriter(file));
         fillSettings();
         bufferedWriter.flush();
@@ -66,6 +66,11 @@ public class ArffDataFile {
                 completeData.append(", ");
         }
         bufferedWriter.write(completeData.toString() + "\n");
+        bufferedWriter.flush();
+    }
+
+    public void writeLine(String line) throws IOException {
+        bufferedWriter.write(line + "\n");
         bufferedWriter.flush();
     }
 

@@ -1,1 +1,1 @@
-{"GridWidth":5,"GridHeight":5,"marioMode":true,"isMarioOnGround":true,"isMarioAbleToJump":true,"isMarioAbleToShoot":true,"isMarioCarrying":true}
+{"GridWidth":10,"GridHeight":10,"marioMode":true,"isMarioOnGround":false,"isMarioAbleToJump":false,"isMarioAbleToShoot":false,"isMarioCarrying":false}

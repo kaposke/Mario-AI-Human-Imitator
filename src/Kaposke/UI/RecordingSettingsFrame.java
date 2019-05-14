@@ -99,13 +99,13 @@ class RecordingSettingsFrame extends JFrame implements ActionListener {
         gbc.gridy = 1;
         mainPanel.add(new JLabel("marioMode"), gbc);
         gbc.gridy = 2;
-        mainPanel.add(new JLabel("isMarioOnGroundCheck"), gbc);
+        mainPanel.add(new JLabel("isMarioOnGround"), gbc);
         gbc.gridy = 3;
         mainPanel.add(new JLabel("isMarioAbleToJump"), gbc);
         gbc.gridy = 4;
-        mainPanel.add(new JLabel("isMarioAbleToShootCheck"), gbc);
+        mainPanel.add(new JLabel("isMarioAbleToShoot"), gbc);
         gbc.gridy = 5;
-        mainPanel.add(new JLabel("isMarioCarryingCheck"), gbc);
+        mainPanel.add(new JLabel("isMarioCarrying"), gbc);
 
         gbc.anchor = GridBagConstraints.LINE_END;
         gbc.gridx = 3;
