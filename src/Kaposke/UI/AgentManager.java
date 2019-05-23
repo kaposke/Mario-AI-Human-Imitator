@@ -17,6 +17,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Random;
 
@@ -198,6 +200,13 @@ public class AgentManager implements ActionListener {
         String playerName = JOptionPane.showInputDialog("Insert recording name", "");
 
         if (playerName == null || playerName.length() == 0) return;
+
+        try {
+            if (!Files.exists(Paths.get(recordingsPath)))
+                Files.createDirectory(Paths.get(recordingsPath));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         UtilitySingleton.getInstance().setArffPath(recordingsPath + "/" + playerName + ".arff");
         playRecordingAgent();
