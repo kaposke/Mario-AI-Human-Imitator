@@ -36,7 +36,7 @@ public class FakeHumanAgentVerbal extends BasicMarioAIAgent implements Agent {
     public FakeHumanAgentVerbal() {
         super(new File(UtilitySingleton.getInstance().getArffPath()).getName());
 
-        actionClassifier = new NaiveBayes();
+        actionClassifier = new IBk();
 
         try {
             String filePath = UtilitySingleton.getInstance().getArffPath();
