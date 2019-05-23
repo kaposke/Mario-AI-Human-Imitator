@@ -35,6 +35,11 @@ public class SettingsHandler {
 
     public static SettingsModel loadSettings() throws IOException {
         String path = UtilitySingleton.getInstance().getSettingsPath();
+        return readSettings(path);
+    }
+
+    public static SettingsModel readSettings(String path) throws IOException {
+        path = path.replace(".model", ".settings").replace(".arff", ".settings");
 
         File file = new File(path);
 
@@ -51,9 +56,7 @@ public class SettingsHandler {
         String json = reader.readLine();
 
         Gson gson = new Gson();
-        SettingsModel settings = gson.fromJson(json, SettingsModel.class);
-
-        return settings;
+        return gson.fromJson(json, SettingsModel.class);
     }
 
 }

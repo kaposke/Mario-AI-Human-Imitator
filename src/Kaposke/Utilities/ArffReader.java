@@ -6,15 +6,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// This class is not a complete implementation of a ArffReader. It is currently only used for comment retrieval, used in this project
-// to load file settings dynamically.
 public class ArffReader {
 
     public static List<String> getHeaderComments(String arffPath) throws IOException {
         File arff = new File(arffPath);
 
         if (!arff.exists()) {
-            throw new FileNotFoundException("Settings file not found.");
+            throw new FileNotFoundException("Arff not found.");
         }
 
         BufferedReader reader = new BufferedReader(new FileReader(arff));
@@ -70,7 +68,7 @@ public class ArffReader {
         List<String[]> firstAttributes = getAttributes(first);
         List<String[]> secondAttributes = getAttributes(second);
 
-        // If they have different sizes, they are different right away
+        // If they have different amount of attributes, they are different right away
         if (firstAttributes.size() != secondAttributes.size())
             return false;
 

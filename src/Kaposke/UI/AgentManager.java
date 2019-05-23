@@ -180,7 +180,7 @@ public class AgentManager implements ActionListener {
         else if (e.getSource() == AIFromArffButton) {
             AIFromArffPressed();
         } // If AI Agent from Model
-        else if(e.getSource() == AIFromModelButton) {
+        else if (e.getSource() == AIFromModelButton) {
             AIFromModelPressed();
         }
         if (e.getSource() == useRandomSeedCheckBox) {
@@ -197,7 +197,7 @@ public class AgentManager implements ActionListener {
         // Pergunta o nome e salva o caminho
         String playerName = JOptionPane.showInputDialog("Insert recording name", "");
 
-        if(playerName == null || playerName.length() == 0) return;
+        if (playerName == null || playerName.length() == 0) return;
 
         UtilitySingleton.getInstance().setArffPath(recordingsPath + "/" + playerName + ".arff");
         playRecordingAgent();
@@ -273,15 +273,9 @@ public class AgentManager implements ActionListener {
         }
 
         try {
-            // Loads comment from arff file and gets settings used on it.
-            List<String> headerComments = ArffReader.getHeaderComments(UtilitySingleton.getInstance().getArffPath());
-
-            if(!headerComments.isEmpty()) {
-                SettingsModel settings = SettingsHandler.fromJson(headerComments.get(0));
-
-                marioAIOptions.setReceptiveFieldWidth(settings.GridWidth);
-                marioAIOptions.setReceptiveFieldHeight(settings.GridHeight);
-            }
+            SettingsModel settings = SettingsHandler.readSettings(UtilitySingleton.getInstance().getArffPath());
+            marioAIOptions.setReceptiveFieldWidth(settings.GridWidth);
+            marioAIOptions.setReceptiveFieldHeight(settings.GridHeight);
 
             evaluateAgent(agent, (int) amountOfLevelsSpinner.getValue(), (int) startingDifficultySpinner.getValue(), (int) difficultyIncreaseSpinner.getValue(), levelSeed);
         } catch (IOException e) {

@@ -10,6 +10,8 @@ import ch.idsia.agents.controllers.human.HumanKeyboardAgent;
 import ch.idsia.benchmark.mario.environments.Environment;
 import com.google.gson.Gson;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +27,18 @@ public class RecordingAgent extends HumanKeyboardAgent {
     public void initialize() {
         try {
             settings = SettingsHandler.loadSettings();
+            SaveSettings();
         } catch (IOException e) {
             e.printStackTrace();
         }
         setupArffFile();
+    }
+
+    private void SaveSettings() throws IOException {
+        String path = UtilitySingleton.getInstance().getArffPath().replace(".arff", ".settings");
+        BufferedWriter writer  = new BufferedWriter(new FileWriter(path));
+        writer.write(SettingsHandler.toJson(settings));
+        writer.flush();
     }
 
     @Override
@@ -52,6 +62,8 @@ public class RecordingAgent extends HumanKeyboardAgent {
                     data.add("" + mergedObservation[i][j]);
                 }
             }
+
+            mergedObservation = environment.getMergedObservationZZ(settings.ZLevelScene, settings.ZLevelEnemies);
 
             if (settings.marioMode)
                 data.add(marioMode == 2 ? "fire" : marioMode == 1 ? "large" : "small");
@@ -83,7 +95,7 @@ public class RecordingAgent extends HumanKeyboardAgent {
     }
 
     private void setupArffFile() {
-        // add settings to header comments so that we can correctly load it later
+        // add settings to header comments
         arffFile.addHeadComment(new Gson().toJson(settings));
 
         arffFile.setRelation("marioData");

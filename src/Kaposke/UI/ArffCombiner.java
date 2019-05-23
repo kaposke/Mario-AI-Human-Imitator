@@ -7,8 +7,14 @@ import weka.core.converters.ArffLoader;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,10 +87,23 @@ public class ArffCombiner {
                     arff.writeLine(line);
                 }
             }
+
+            createConfigFile(paths[0], fileName);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+    }
+
+    private void createConfigFile(String filePath, String name) throws IOException {
+
+        String original = filePath.replace(".arff", ".settings");
+        String config = new File(filePath).getParent() + "/" +  name + ".settings";
+
+        Path originalPath = Paths.get(original);
+        Path configPath = Paths.get(config);
+
+        Files.copy(originalPath, configPath, StandardCopyOption.REPLACE_EXISTING);
     }
 
     public static void main(String[] args) {

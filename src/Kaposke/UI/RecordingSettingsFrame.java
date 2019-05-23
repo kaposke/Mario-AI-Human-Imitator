@@ -18,6 +18,9 @@ class RecordingSettingsFrame extends JFrame implements ActionListener {
     private JSpinner colsSpinner;
     private JSpinner rowsSpinner;
 
+    private JComboBox ZLevelSceneCombo;
+    private JComboBox ZLevelEnemiesCombo;
+
     private JCheckBox marioModeCheck;
     private JCheckBox isMarioOnGroundCheck;
     private JCheckBox isMarioAbleToJumpCheck;
@@ -54,7 +57,7 @@ class RecordingSettingsFrame extends JFrame implements ActionListener {
         saveButton.addActionListener(this);
 
         gbc.gridx = 0;
-        gbc.gridy = 6;
+        gbc.gridy = 8;
         gbc.gridwidth = 4;
         mainPanel.add(saveButton, gbc);
 
@@ -84,6 +87,29 @@ class RecordingSettingsFrame extends JFrame implements ActionListener {
         gbc.anchor = GridBagConstraints.LINE_START;
         gbc.gridx = 3;
         mainPanel.add(rowsSpinner, gbc);
+
+        // ZLevel Dropdowns
+        String[] levels = { "0", "1", "2" };
+        ZLevelSceneCombo = new JComboBox(levels);
+        ZLevelEnemiesCombo = new JComboBox(levels);
+
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.gridx = 0;
+
+        gbc.gridy = 1;
+        mainPanel.add(new JLabel("ZLevel Scene"), gbc);
+        gbc.gridy = 2;
+        mainPanel.add(new JLabel("ZLevel Enemies"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridwidth = 3;
+
+        gbc.gridy = 1;
+        mainPanel.add(ZLevelSceneCombo, gbc);
+        gbc.gridy = 2;
+        mainPanel.add(ZLevelEnemiesCombo, gbc);
+
+        gbc.gridwidth = 1;
     }
 
     private void createMarioStatsComponents() {
@@ -96,29 +122,29 @@ class RecordingSettingsFrame extends JFrame implements ActionListener {
         gbc.anchor = GridBagConstraints.LINE_START;
         gbc.gridx = 0;
 
-        gbc.gridy = 1;
-        mainPanel.add(new JLabel("marioMode"), gbc);
-        gbc.gridy = 2;
-        mainPanel.add(new JLabel("isMarioOnGround"), gbc);
         gbc.gridy = 3;
-        mainPanel.add(new JLabel("isMarioAbleToJump"), gbc);
+        mainPanel.add(new JLabel("marioMode"), gbc);
         gbc.gridy = 4;
-        mainPanel.add(new JLabel("isMarioAbleToShoot"), gbc);
+        mainPanel.add(new JLabel("isMarioOnGround"), gbc);
         gbc.gridy = 5;
+        mainPanel.add(new JLabel("isMarioAbleToJump"), gbc);
+        gbc.gridy = 6;
+        mainPanel.add(new JLabel("isMarioAbleToShoot"), gbc);
+        gbc.gridy = 7;
         mainPanel.add(new JLabel("isMarioCarrying"), gbc);
 
         gbc.anchor = GridBagConstraints.LINE_END;
         gbc.gridx = 3;
 
-        gbc.gridy = 1;
-        mainPanel.add(marioModeCheck, gbc);
-        gbc.gridy = 2;
-        mainPanel.add(isMarioOnGroundCheck, gbc);
         gbc.gridy = 3;
-        mainPanel.add(isMarioAbleToJumpCheck, gbc);
+        mainPanel.add(marioModeCheck, gbc);
         gbc.gridy = 4;
-        mainPanel.add(isMarioAbleToShootCheck, gbc);
+        mainPanel.add(isMarioOnGroundCheck, gbc);
         gbc.gridy = 5;
+        mainPanel.add(isMarioAbleToJumpCheck, gbc);
+        gbc.gridy = 6;
+        mainPanel.add(isMarioAbleToShootCheck, gbc);
+        gbc.gridy = 7;
         mainPanel.add(isMarioCarryingCheck, gbc);
     }
 
@@ -134,6 +160,9 @@ class RecordingSettingsFrame extends JFrame implements ActionListener {
         colsSpinner.setValue(settings.GridWidth);
         rowsSpinner.setValue(settings.GridHeight);
 
+        ZLevelSceneCombo.setSelectedIndex(settings.ZLevelScene);
+        ZLevelEnemiesCombo.setSelectedIndex(settings.ZLevelEnemies);
+
         marioModeCheck.setSelected(settings.marioMode);
         isMarioOnGroundCheck.setSelected(settings.isMarioOnGround);
         isMarioAbleToJumpCheck.setSelected(settings.isMarioAbleToJump);
@@ -145,6 +174,9 @@ class RecordingSettingsFrame extends JFrame implements ActionListener {
         SettingsModel settings = new SettingsModel();
         settings.GridWidth = (int) colsSpinner.getValue();
         settings.GridHeight = (int) rowsSpinner.getValue();
+
+        settings.ZLevelScene = (int) ZLevelSceneCombo.getSelectedIndex();
+        settings.ZLevelEnemies = (int) ZLevelEnemiesCombo.getSelectedIndex();
 
         settings.marioMode = marioModeCheck.isSelected();
         settings.isMarioOnGround = isMarioOnGroundCheck.isSelected();
