@@ -1,1 +1,1 @@
-{"GridWidth":10,"GridHeight":10,"ZLevelScene":1,"ZLevelEnemies":0,"marioMode":true,"isMarioOnGround":false,"isMarioAbleToJump":true,"isMarioAbleToShoot":true,"isMarioCarrying":false}
+{"GridWidth":5,"GridHeight":5,"ZLevelScene":2,"ZLevelEnemies":2,"marioMode":true,"isMarioOnGround":false,"isMarioAbleToJump":false,"isMarioAbleToShoot":true,"isMarioCarrying":false}

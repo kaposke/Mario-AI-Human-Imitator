@@ -36,9 +36,16 @@ public class FakeHumanAgentVerbal extends BasicMarioAIAgent implements Agent {
     public FakeHumanAgentVerbal() {
         super(new File(UtilitySingleton.getInstance().getArffPath()).getName());
 
-        actionClassifier = new IBk();
+
 
         try {
+            String[] options = new String[2];
+            options[0] = "-K";
+            options[1] = "1";
+
+            actionClassifier = new IBk();
+            ((IBk)actionClassifier).setOptions(options);
+
             String filePath = UtilitySingleton.getInstance().getArffPath();
 
             settings = SettingsHandler.readSettings(filePath);
